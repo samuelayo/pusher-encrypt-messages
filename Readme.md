@@ -21,6 +21,25 @@ cd pusher-encrypt-messages
 ```
 npm install
 ```
+- Setup Pusher
+
+If you don't have one already, create a free Pusher account at https://pusher.com/signup then login to your dashboard and create an app. Then fill in your Pusher app credentials in your .env file replacing the x's
+
+```
+PUSHER_APP_ID=XXXXXX
+PUSHER_APP_KEY=XXXXXXXXXX
+PUSHER_APP_SECRET=XXXXXXXXXX
+PUSHER_APP_CLUSTER=XXX``
+```
+Next, replace both `PUSHER_APP_KEY` and `PUSHER_APP_CLUSTER` with thier corresponding values in `public/client.js` where you have 
+
+```
+const pusher = new Pusher('PUSHER_APP_KEY', {
+    cluster: 'PUSHER_APP_CLUSTER',
+    encrypted: true,
+    authEndpoint: 'pusher/auth'
+});
+```
 
 - Run the app
 
