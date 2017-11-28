@@ -17,7 +17,7 @@ xhttp.onreadystatechange = function() {
        
     }
 };
-xhttp.open("POST", "/get-key", true);
+xhttp.open("POST", "/send-key", true);
 xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 xhttp.send(c_vars);
 
@@ -57,7 +57,7 @@ function renderpage() {
 
 function send_message() {
     var message = document.getElementById('btn-input').value;
-    var username = 'anonymous ' + Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 5);
+    var username = sessionStorage.getItem('user');
 
     var xhttp = new XMLHttpRequest();
     var c_vars = "username=" + username + "&message=" + message + "&channel_name=private-groupChat";

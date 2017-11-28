@@ -2,8 +2,11 @@
 <html lang="en">
 
 <head>
+ <% if(user){ %>
+                   <script> sessionStorage.setItem('user', '<%=user%>'); </script>
+                <% } %>
     <meta charset="utf-8">
-    <title>Anonymous group chat with aes encryption</title>
+    <title>Group chat with aes encryption</title>
 
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 
