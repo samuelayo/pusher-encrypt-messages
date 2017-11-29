@@ -12,14 +12,8 @@ const app = express();
 const setChannelKey = (name) => {
     var salt = CryptoJS.lib.WordArray.random(128 / 8);
     var newkey = CryptoJS.PBKDF2(name, salt, { keySize: 512 / 32, iterations: 1000 }).toString();
-
-
-    cache.put('setChannelKeyDecrypt-' + name, newkey)
-        //console.log("name is " + name);
-        //console.log("The file was saved!" + newkey);
+    cache.put(name, newkey)
     return newkey;
-
-
 }
 
 
@@ -49,48 +43,37 @@ const pusher = new Pusher({
 
 //demo users and password
 
-const users = [{
-        username: 'samuel',
-        password: 'pass3'
-    },
-    {
-        username: 'samson',
-        password: 'pass3'
-    },
-    {
-        username: 'danier',
-        password: 'pass3'
-    }
-]
+const users = {samuel:'pass3', samson: 'pass3'};
 
 // serve home page
 app.get('/', (req, res) => {
     if (!req.session.user || !req.session.authenticated) {
         res.redirect('/login');
-    }else{
-        res.render('index', {user: req.session.user.username});
+    } else {
+        res.render('index', { user: req.session.user });
     }
-    
 
-    
+
+
 });
 
-app.get('/login', function(req, res){
-    res.render('login', {error: req.session.error});
+app.get('/login', function(req, res) {
+    res.render('login', { error: req.session.error });
 });
 
 app.post('/login', function(req, res) {
 
-    var userLoggingIn = users.find(user => user.username === req.body.username && user.password === req.body.password);
-    if (userLoggingIn) {
+    var userLoggingIn = users[req.body.username];
+  
+    if (userLoggingIn && users[req.body.username] == req.body.password) {
         req.session.authenticated = true;
-        req.session.user = userLoggingIn;
-        if(req.session.error){
-            req.session.error=null;
+        req.session.user = req.body.username;
+        if (req.session.error) {
+            req.session.error = null;
         }
         res.redirect('/');
     } else {
-        req.session.error = 'Username and password are incorrect';
+        req.session.error = 'Username or password are incorrect';
         res.redirect('/login');
     }
 
@@ -99,11 +82,17 @@ app.post('/login', function(req, res) {
 
 // get authentict=ation for the channel (private channel only);
 app.post('/pusher/auth', (req, res) => {
-    const socketId = req.body.socket_id;
-    const channel = req.body.channel_name;
-    const auth = pusher.authenticate(socketId, channel);
 
-    res.send(auth);
+    if (!req.session.user || !req.session.authenticated) {
+        res.status(403).send('unauthorised');
+    } else {
+        const socketId = req.body.socket_id;
+        const channel = req.body.channel_name;
+        const auth = pusher.authenticate(socketId, channel);
+
+        res.send(auth);
+    }
+
 });
 
 
@@ -116,7 +105,7 @@ app.post('/send-key', (req, res) => {
 
 
         try {
-            var key = cache.get('setChannelKeyDecrypt-' + channel_name);
+            var key = cache.get(channel_name);
 
             return res.json({ key: CryptoJS.enc.Latin1.parse(key) });
         } catch (error) {
@@ -137,11 +126,10 @@ app.post('/send-message', (req, res) => {
     var channel_name = req.body.channel_name;
 
     try {
-        var key = cache.get('setChannelKeyDecrypt-' + channel_name);
+        var key = cache.get(channel_name);
 
     } catch (error) {
-        var key = '';
-
+        var key = setChannelKey(channel_name);
     };
     var message_to_send = JSON.stringify({
         username: req.body.username,
