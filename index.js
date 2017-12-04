@@ -5,15 +5,13 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const CryptoJS = require("crypto-js");
 const Pusher = require('pusher');
-const cache = require('memory-cache');
 const app = express();
 
 
 
 // function that sets key for a new channel
-const setChannelKey = (name) => {
+const getChannelKey = (name) => {
     var newkey = CryptoJS.SHA256(name).toString();
-    cache.put(name, newkey)
     return newkey;
 }
 
@@ -103,18 +101,8 @@ app.post('/send-key', (req, res) => {
         res.status(403).send('unauthorised');
     } else {
         var channel_name = req.body.channel_name;
-
-
-        try {
-            var key = cache.get(channel_name);
-
-            return res.json({ key: CryptoJS.enc.Latin1.parse(key) });
-        } catch (error) {
-            var key = setChannelKey(channel_name);
-
-            return res.json({ key: CryptoJS.enc.Latin1.parse(key) });
-
-        }
+        var key = getChannelKey(channel_name);
+        return res.json({ key: CryptoJS.enc.Latin1.parse(key) });
     }
 
 });
@@ -125,13 +113,7 @@ app.post('/send-key', (req, res) => {
 app.post('/send-message', (req, res) => {
 
     var channel_name = req.body.channel_name;
-
-    try {
-        var key = cache.get(channel_name);
-
-    } catch (error) {
-        var key = setChannelKey(channel_name);
-    };
+    var key = getChannelKey(channel_name);
     var message_to_send = JSON.stringify({
         username: req.body.username,
         message: req.body.message
