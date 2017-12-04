@@ -1,5 +1,5 @@
-const pusher = new Pusher('ec75c89294f1617ae16e', {
-    cluster: 'mt1',
+const pusher = new Pusher(XXX_PUSHER_KEY, {
+    cluster: XXX_PUSHER_CLUSTER,
     encrypted: true,
     authEndpoint: 'pusher/auth'
 });
