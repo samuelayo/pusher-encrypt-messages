@@ -8,10 +8,11 @@ const Pusher = require('pusher');
 const cache = require('memory-cache');
 const app = express();
 
+
+
 // function that sets key for a new channel
 const setChannelKey = (name) => {
-    var salt = CryptoJS.lib.WordArray.random(128 / 8);
-    var newkey = CryptoJS.PBKDF2(name, salt, { keySize: 512 / 32, iterations: 1000 }).toString();
+    var newkey = CryptoJS.SHA256(name).toString();
     cache.put(name, newkey)
     return newkey;
 }
