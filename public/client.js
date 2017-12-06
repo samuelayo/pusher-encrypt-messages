@@ -1,25 +1,27 @@
+
 const pusher = new Pusher(XXX_PUSHER_KEY, {
     cluster: XXX_PUSHER_CLUSTER,
     encrypted: true,
     authEndpoint: 'pusher/auth'
 });
+var channelname = 'private-groupChat';
 var messages = [];
 var decryptKey;
-const channel = pusher.subscribe('private-groupChat');
+const channel = pusher.subscribe(channelname);
 
 var xhttp = new XMLHttpRequest();
-var c_vars = "channel_name=private-groupChat"
+var c_vars = "channel_name="+channelname
 xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
         //document.getElementById("demo").innerHTML = this.responseText;
         var result = JSON.parse(this.responseText);
         decryptKey = CryptoJS.enc.Latin1.stringify(result.key);
-       
+    
     }
 };
-xhttp.open("POST", "/send-key", true);
+xhttp.open("GET", "/channel/"+channelname+"/key", true);
 xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-xhttp.send(c_vars);
+xhttp.send();
 
 channel.bind('message_sent', function(data) {
     messages.push(data);
@@ -60,7 +62,7 @@ function send_message() {
     var username = sessionStorage.getItem('user');
 
     var xhttp = new XMLHttpRequest();
-    var c_vars = "username=" + username + "&message=" + message + "&channel_name=private-groupChat";
+    var c_vars = "username=" + username + "&message=" + message;
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
             //document.getElementById("demo").innerHTML = this.responseText;
@@ -68,7 +70,7 @@ function send_message() {
             document.getElementById('btn-input').value = '';
         }
     };
-    xhttp.open("POST", "/send-message", true);
+    xhttp.open("POST", "/send-message/"+channelname, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhttp.send(c_vars);
 

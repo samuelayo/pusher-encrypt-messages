@@ -11,6 +11,7 @@ const app = express();
 
 // function that sets key for a new channel
 const getChannelKey = (name) => {
+    name = name.split("").reverse().join("");
     var newkey = CryptoJS.SHA256(name).toString();
     return newkey;
 }
@@ -96,12 +97,12 @@ app.post('/pusher/auth', (req, res) => {
 
 
 //get key for specific channel.. client side will use this key to decrpyt data
-app.post('/send-key', (req, res) => {
+app.get('/channel/:channelname/key', (req, res) => {
     if (!req.session.user || !req.session.authenticated) {
         res.status(403).send('unauthorised');
     } else {
-        var channel_name = req.body.channel_name;
-        var key = getChannelKey(channel_name);
+        var channel_name = req.params.channelname;
+        var key = CryptoJS.SHA256(getChannelKey(channel_name)+channel_name).toString();
         return res.json({ key: CryptoJS.enc.Latin1.parse(key) });
     }
 
@@ -110,15 +111,15 @@ app.post('/send-key', (req, res) => {
 
 
 //send message via pusher
-app.post('/send-message', (req, res) => {
+app.post('/send-message/:channelname', (req, res) => {
 
-    var channel_name = req.body.channel_name;
-    var key = getChannelKey(channel_name);
+    var channel_name = req.params.channelname;
+    var key = CryptoJS.SHA256(getChannelKey(channel_name)+channel_name).toString();
     var message_to_send = JSON.stringify({
         username: req.body.username,
         message: req.body.message
     });
-    var message_to_send = CryptoJS.AES.encrypt(message_to_send, key).toString()
+    var message_to_send = CryptoJS.AES.encrypt(message_to_send, key).toString();
     pusher.trigger(channel_name, 'message_sent', message_to_send);
     res.send('Message sent');
 });
